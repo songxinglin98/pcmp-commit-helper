@@ -1,0 +1,218 @@
+/* 全部用 VS Code 主题变量，跟随用户亮/暗主题，不做自定义配色 */
+:root {
+  --gap: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size, 13px);
+  color: var(--vscode-foreground);
+  background: transparent;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: 8px;
+}
+
+.repoSelect,
+.summary,
+.newBranch,
+.baseSelect,
+.description {
+  width: 100%;
+  padding: 5px 6px;
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 2px;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.description {
+  resize: vertical;
+  min-height: 48px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.branchBox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 3px;
+  border-left: 3px solid var(--vscode-panel-border, #3c3c3c);
+  background: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.08));
+}
+
+.branchBox.hit {
+  border-left-color: var(--vscode-charts-green, #4ec9b0);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  flex: 0 0 62px;
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+}
+
+.branch,
+.prefix {
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prefix {
+  color: var(--vscode-charts-green, #4ec9b0);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag {
+  padding: 0 4px;
+  border-radius: 2px;
+  font-size: 10px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+}
+
+.tag.warn {
+  background: var(--vscode-statusBarItem-warningBackground, #a97b00);
+  color: var(--vscode-statusBarItem-warningForeground, #fff);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.25));
+  border-radius: 3px;
+}
+
+.panel h3 {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vscode-descriptionForeground);
+}
+
+.preview {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  word-break: break-all;
+}
+
+.preview code {
+  color: var(--vscode-foreground);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 4px 10px;
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 2px;
+  color: var(--vscode-button-secondaryForeground);
+  background: var(--vscode-button-secondaryBackground);
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+button.primary {
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--vscode-button-hoverBackground);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+}
+
+.busy {
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.notice {
+  position: sticky;
+  bottom: 0;
+  padding: 6px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  word-break: break-word;
+  cursor: pointer;
+  background: var(--vscode-editorWidget-background);
+  border-left: 3px solid var(--vscode-charts-blue, #3794ff);
+}
+
+.notice.error {
+  border-left-color: var(--vscode-errorForeground, #f48771);
+  color: var(--vscode-errorForeground, #f48771);
+}
+
+.notice.warn {
+  border-left-color: var(--vscode-editorWarning-foreground, #cca700);
+}

@@ -1,0 +1,91 @@
+{
+  "name": "pcmp-commit-helper",
+  "displayName": "PCMP Commit Helper",
+  "description": "分支名含 PCMP 时自动为提交信息加 PCMP 单号前缀；支持从基线分支创建分支并推送",
+  "version": "0.0.1",
+  "private": true,
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:pcmpCommitHelper.view"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pcmpCommitHelper",
+          "title": "PCMP Commit",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "pcmpCommitHelper": [
+        {
+          "id": "pcmpCommitHelper.view",
+          "name": "提交与分支",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "pcmpCommitHelper.focus",
+        "title": "PCMP: 打开面板"
+      },
+      {
+        "command": "pcmpCommitHelper.refresh",
+        "title": "PCMP: 刷新状态"
+      }
+    ],
+    "configuration": {
+      "title": "PCMP Commit Helper",
+      "properties": {
+        "pcmpCommitHelper.branchKeyword": {
+          "type": "string",
+          "default": "PCMP",
+          "description": "分支名中出现该关键字时，提交信息会被加上 PCMP 单号前缀（忽略大小写）"
+        },
+        "pcmpCommitHelper.defaultBase": {
+          "type": "string",
+          "default": "",
+          "description": "创建分支时的默认基线分支名，留空则自动选择 master/main"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build:webview": "npm --prefix webview-ui run build",
+    "build:extension": "node esbuild.mjs",
+    "build": "npm run build:webview && npm run build:extension",
+    "watch:extension": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.json && npm --prefix webview-ui run typecheck",
+    "vscode:prepublish": "npm run build",
+    "package": "npm run build && vsce package --no-dependencies",
+    "test": "vitest run",
+    "test:hook": "sh tests/hook.test.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/vscode": "1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.11"
+  },
+  "type": "module",
+  "files": [
+    "dist",
+    "hooks",
+    "media",
+    "README.md"
+  ]
+}

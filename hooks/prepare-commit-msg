@@ -1,0 +1,99 @@
+#!/bin/sh
+# PCMP Commit Helper —— prepare-commit-msg 钩子
+#
+# 分支名含 PCMP 时，给提交信息首行加单号前缀：`PCMP-123: 原始信息`
+# 幂等，amend / 反复提交不会叠前缀。
+#
+# 由 `pcmpCommitHelper.installHook` 命令安装到 core.hooksPath 指向的目录。
+# 也可手动拷进仓库的 .git/hooks/ 使用。
+#
+# 退出码恒为 0：前缀是锦上添花，不应该阻断任何一次提交。
+# git 传参：$1=信息文件 $2=来源(message|template|merge|squash|commit) $3=commit SHA
+
+MSG_FILE="$1"
+SOURCE="$2"
+
+[ -n "$MSG_FILE" ] || exit 0
+[ -f "$MSG_FILE" ] || exit 0
+
+# 合并 / squash / 由模板生成时，信息往往为空或纯粹是机器生成的，
+# 加前缀只会产出 "PCMP-123: " 这种垃圾提交信息，直接放过。
+case "$SOURCE" in
+  merge|squash|template) exit 0 ;;
+esac
+
+BRANCH=$(git symbolic-ref --short -q HEAD) || exit 0
+[ -n "$BRANCH" ] || exit 0
+
+# 关键字可覆盖，默认 PCMP。这里是大小写不敏感的「包含」判断。
+KEYWORD=${PCMP_HOOK_KEYWORD:-PCMP}
+BRANCH_LOWER=$(printf '%s' "$BRANCH" | tr '[:upper:]' '[:lower:]')
+KEYWORD_LOWER=$(printf '%s' "$KEYWORD" | tr '[:upper:]' '[:lower:]')
+case "$BRANCH_LOWER" in
+  *"$KEYWORD_LOWER"*) ;;
+  *) exit 0 ;;
+esac
+
+# 取首行，去掉首尾空白。空信息直接放过（交互式提交时 git 会调编辑器，
+# 此时文件可能是空的，加前缀会污染用户将要输入的内容）。
+HEAD_LINE=$(head -n 1 "$MSG_FILE" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+[ -n "$HEAD_LINE" ] || exit 0
+
+# 首行是注释（默认以 # 开头）时同样是空提交，不处理。
+case "$HEAD_LINE" in
+  \#*) exit 0 ;;
+esac
+
+# 从分支名抽单号。
+#
+# 只认两种明确形态，其余一律返回空（下面会退化为用完整分支名当前缀）：
+#   1. 关键字 + `-` 或 `_` + 数字：dev/PCMP-123、feature/PCMP_456
+#   2. 关键字直接接数字：feature/PCMP123
+#
+# 刻意不解析关键字后面跟 / . 空格等的形态（dev/PCMP.1+2-77、dev/PCMP(9)-8）——
+# 那些名字里数字片段的含义不明，猜错会把提交挂到错误的单号上，代价高于不加前缀。
+#
+# 用 awk 逐字符比较而非 sed/expr 拼正则：分支名里的 . + ( ) [ ] 是正则元字符，
+# 拼进模式会被误解释。逻辑与 webview-ui/src/pcmpPrefix.ts 中的 TS 实现保持一致。
+TICKET=$(printf '%s' "$BRANCH" | awk -v kw="$KEYWORD_LOWER" '
+function digits_from(s,   d) {
+  if (match(s, /^[0-9]+/)) return substr(s, RSTART, RLENGTH)
+  return ""
+}
+{
+  line = tolower($0)
+  n = length(line)
+  k = length(kw)
+
+  # 形态 1：关键字 + - 或 _ + 数字
+  for (i = 1; i <= n - k + 1; i++) {
+    if (substr(line, i, k) != kw) continue
+    j = i + k
+    sep = substr(line, j, 1)
+    if (sep != "-" && sep != "_") continue
+    d = digits_from(substr(line, j + 1))
+    if (d != "") { printf "%s-%s", toupper(kw), d; exit }
+  }
+
+  # 形态 2：关键字直接接数字
+  for (i = 1; i <= n - k + 1; i++) {
+    if (substr(line, i, k) != kw) continue
+    d = digits_from(substr(line, i + k))
+    if (d != "") { printf "%s-%s", toupper(kw), d; exit }
+  }
+}')
+[ -n "$TICKET" ] || TICKET="$BRANCH"
+
+# 幂等检查：首行已带同前缀则原样返回。
+# 用 case 做字面匹配，TICKET 里的特殊字符不会被解释。
+case "$HEAD_LINE" in
+  "$TICKET":*|"$TICKET":\ *|"$TICKET"\ *|"$TICKET"|\["$TICKET"\]*) exit 0 ;;
+esac
+
+# 首行加前缀，其余内容（正文、Change-Id 等）原样保留。
+{
+  printf '%s: %s\n' "$TICKET" "$HEAD_LINE"
+  tail -n +2 "$MSG_FILE"
+} > "$MSG_FILE.tmp" && mv "$MSG_FILE.tmp" "$MSG_FILE"
+
+exit 0
